@@ -158,6 +158,13 @@ struct MjRobot
   }
 };
 
+} // namespace mc_mujoco
+
+#include "PosePublisher.h"
+
+namespace mc_mujoco
+{
+
 struct MjSimImpl
 {
 private:
@@ -224,6 +231,9 @@ public:
 
   /*! Simulation wall clock time (seconds) */
   double wallclock;
+
+  /** List of pose publisher */
+  std::vector<std::shared_ptr<PosePublisher>> pose_publisher_list;
 
 private:
   /** Number of MuJoCo iteration since the start */

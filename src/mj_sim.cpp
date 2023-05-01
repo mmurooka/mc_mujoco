@@ -547,6 +547,20 @@ void MjSimImpl::startSimulation()
   controller->init(init_qs_, init_pos_);
   controller->running = true;
   setSimulationInitialState();
+
+  pose_publisher_list.clear();
+  for(const auto & r : robots)
+  {
+    // TODO: Allow the user to specify from the configuration file.
+    if(r.name == "obj")
+    {
+      PosePublisher::Configuration pose_publisher_config;
+      pose_publisher_config.pose_topic_name = "/mujoco/object/pose";
+      pose_publisher_config.vel_topic_name = "/mujoco/object/vel";
+      const auto & pose_publisher = std::make_shared<PosePublisher>(&r, simTimestep, pose_publisher_config);
+      pose_publisher_list.push_back(pose_publisher);
+    }
+  }
 }
 
 void MjRobot::updateSensors(mc_control::MCGlobalController * gc, mjModel * model, mjData * data)
@@ -634,6 +648,11 @@ void MjSimImpl::updateData()
   for(auto & r : robots)
   {
     r.updateSensors(controller.get(), model, data);
+  }
+
+  for(const auto & pose_publisher : pose_publisher_list)
+  {
+    pose_publisher->update();
   }
 }
 
