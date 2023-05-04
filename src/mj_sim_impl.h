@@ -44,6 +44,8 @@ struct MjRobot
   int root_body_id = -1;
   /** Free joint in MuJoCo */
   std::string root_joint;
+  /** Free joint id in MuJoCo */
+  int root_joint_id = -1;
   /** Index of robot's root in qpos, -1 if fixed base */
   int root_qpos_idx = -1;
   /** Index of robot's root in qvel, -1 if fixed base */
@@ -180,12 +182,6 @@ public:
 
   /** MuJoCo data */
   mjData * data = nullptr;
-
-  /** Initial state */
-  std::vector<double> qInit;
-
-  /** Initial velocity */
-  std::vector<double> alphaInit;
 
 #ifndef USE_UI_ADAPTER
   /** GLFW window, might be null if the visualization is disabled */
