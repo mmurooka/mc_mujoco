@@ -12,6 +12,52 @@ namespace po = boost::program_options;
 
 bool render_state = true;
 
+void scanPluginLibraries()
+{
+  int nplugin = mjp_pluginCount();
+  if(nplugin)
+  {
+    mc_rtc::log::info("[mc_mujoco] Built-in plugins");
+    for(int i = 0; i < nplugin; ++i)
+    {
+      mc_rtc::log::info("  - {}", mjp_getPluginAtSlot(i)->name);
+    }
+  }
+
+  const char * mujoco_plugin_path_char = std::getenv("MUJOCO_PLUGIN_PATH");
+  if(!mujoco_plugin_path_char)
+  {
+    return;
+  }
+  std::stringstream mujoco_plugin_path_ss(mujoco_plugin_path_char);
+  std::string plugin_path;
+#ifdef _WIN32
+  const char path_delimiter = ';';
+#else
+  const char path_delimiter = ':';
+#endif
+  while(std::getline(mujoco_plugin_path_ss, plugin_path, path_delimiter))
+  {
+    if(plugin_path.empty())
+    {
+      continue;
+    }
+    mc_rtc::log::info("[mc_mujoco] Scan plugins in {}", plugin_path);
+    mj_loadAllPluginLibraries(
+        plugin_path.c_str(), +[](const char * filename, int first, int count) {
+          if(count == 0)
+          {
+            return;
+          }
+          mc_rtc::log::info("[mc_mujoco] Plugins registered by library {}", filename);
+          for(int i = first; i < first + count; ++i)
+          {
+            mc_rtc::log::info("  - {}", mjp_getPluginAtSlot(i)->name);
+          }
+        });
+  }
+}
+
 void simulate(mc_mujoco::MjSim & mj_sim)
 {
   bool done = false;
@@ -68,6 +114,9 @@ int main(int argc, char * argv[])
       config.visualize_collisions = vm["with-collisions"].as<bool>();
     }
   }
+
+  scanPluginLibraries();
+
   mc_mujoco::MjSim mj_sim(config);
 
   std::thread simThread(simulate, std::ref(mj_sim));
