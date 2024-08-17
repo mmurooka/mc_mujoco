@@ -461,11 +461,19 @@ void MjSimImpl::setSimulationInitialState()
       setPosW(o, o.init_pose);
     }
 
+    const auto & controller_config = controller->controller().config();
     for(auto & r : robots)
     {
       const auto & robot = controller->robots().robot(r.name);
       r.initialize(model, robot);
-      setPosW(r, robot.posW());
+      if(controller_config.has("mujoco_init_pos") && controller_config("mujoco_init_pos").has(r.name))
+      {
+        setPosW(r, controller_config("mujoco_init_pos")(r.name));
+      }
+      else
+      {
+        setPosW(r, robot.posW());
+      }
       for(size_t i = 0; i < r.mj_jnt_ids.size(); ++i)
       {
         if(r.mj_jnt_to_rjo[i] == -1)
