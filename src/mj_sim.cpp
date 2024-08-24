@@ -771,6 +771,10 @@ void MjRobot::sendControl(const mjModel & model,
       else
       {
         mj_ctrl[i] = PD(i, q_ref, encoders[rjo_id], alpha_ref, alphas[rjo_id]);
+        if(debug_print)
+        {
+          mc_rtc::log::warning("- [{}] AfterFix: [{}] ({}, {}), BeforeFix: [{}] ({}, {})", mj_jnt_names[i], rjo_id, kp[rjo_id], kd[rjo_id], i, kp[i], kd[i]);
+        }
       }
       double ratio = model.actuator_gear[6 * mot_id];
       data.ctrl[mot_id] = mj_ctrl[i] / ratio;
@@ -784,6 +788,7 @@ void MjRobot::sendControl(const mjModel & model,
       data.ctrl[vel_act_id] = alpha_ref;
     }
   }
+  debug_print = false;
 }
 
 bool MjSimImpl::controlStep()
